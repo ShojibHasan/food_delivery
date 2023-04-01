@@ -8,5 +8,6 @@ urlpatterns = [
     
     path('customerDashboard/',views.customerDashboard,name='customerDashboard'),
     path('restaurantDashboard/',views.restaurantDashboard,name='restaurantDashboard'),
-    path('myaccounts/',views.myaccount,name='myaccount')
+    path('myaccounts/',views.myaccount,name='myaccount'),
+    path('activate/<uidb64>/<token>/',views.activate,name='activate')
 ]

@@ -4,7 +4,10 @@ from .forms import UserForm
 from .models import User,UserProfile
 from restaurant.forms import RestaurantForm
 from django.contrib.auth.decorators import login_required
-from  .utils import detectUser
+from  .utils import detectUser, send_verification_email
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+
 # Create your views here.
 
 
@@ -25,6 +28,7 @@ def registerUser(request):
             user = User.objects.create_user(first_name=first_name,last_name=last_name,username=username,email=email,password=password,phone_number=phone_number)
             user.role = User.CUSTOMER
             user.save()
+            send_verification_email(request,user)
             messages.success(request,'Your account has been registered successfully')
             return redirect('home')
         else:
@@ -61,6 +65,9 @@ def registerRestaurant(request):
             user_profile = UserProfile.objects.get(user=user)
             restaurant.user_profile = user_profile
             restaurant.save()
+            
+            
+            send_verification_email(request,user)
             messages.success(request,'Your account has been registered successfully')
             return redirect('home')
         else:
@@ -74,6 +81,21 @@ def registerRestaurant(request):
     }
     return render(request,'accounts/registerRestaurant.html',context)
     
+    
+def activate(request,uidb64,token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User._default_manager.get(pk=uid)
+    except(TypeError,ValueError,OverflowError,User.DoesNotExist):
+        user = None
+    
+    if user is not None and default_token_generator.check_token(user,token):
+        user.is_active = True
+        user.save()
+        return redirect('login')
+    else:
+        messages.error(request,'Invalid Activation link')
+        return redirect('home')
     
 def login(request):
     if request.user.is_authenticated:
@@ -110,3 +132,6 @@ def customerDashboard(request):
 @login_required(login_url='login')  
 def restaurantDashboard(request):
     return render(request,'accounts/restaurant_dashboard.html')
+
+
+#Model ->Otp:  
