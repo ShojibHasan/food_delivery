@@ -4,7 +4,7 @@ from .forms import UserForm
 from .models import User,UserProfile
 from restaurant.forms import RestaurantForm
 from django.contrib.auth.decorators import login_required
-from  .utils import detectUser, send_verification_email
+from  .utils import detectUser, send_verification_email,send_password_reset_eamil
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 
@@ -134,4 +134,50 @@ def restaurantDashboard(request):
     return render(request,'accounts/restaurant_dashboard.html')
 
 
-#Model ->Otp:  
+def forgot_password(request):
+    if request.method == 'POST':
+        email = request.POST['email']
+        if User.objects.get(email=email).exists():
+            user = User.objects.get(email__exact=email)
+            
+            send_password_reset_eamil(request,user)
+            messages.success(request,'Password Reset Link Has been sent to your email address')
+            return redirect('login')
+        else:
+            messages.error(request,'Account dose not exist')
+            return redirect('forgot_password')
+    return render(request,'accounts/forgot_password.html')
+    
+    
+def reset_password_validate(request,uidb64,token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User._default_manager.get(pk=uid)
+    except(TypeError,ValueError,OverflowError,User.DoesNotExist):
+        user = None
+    
+    if user is not None and default_token_generator.check_token(user,token):
+        request.session['uid'] = uid
+        messages.info(request,'Please reset your password')
+        return redirect('reset_password')
+    else:
+        messages.error(request,'Link Expired')
+        return redirect('myaccount')
+    
+def reset_password(request):
+    if request.method == 'POST':
+        password = request.POST['password']
+        confirm_password = request.POST['confirm_password']
+        if password == confirm_password:
+            pk = request.session.get('uid')
+            user = User.objects.get(pk=pk)
+            user.set_password(password)
+            user.is_active = True
+            user.save()
+            
+            messages.success(request,'Password Reset Successfull')
+            return redirect('login')
+        else:
+            messages.error(request,'Password not matched')
+            return redirect('reset_password')
+    return render(request,'accounts/reset_password.html')
