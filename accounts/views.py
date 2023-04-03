@@ -4,7 +4,7 @@ from .forms import UserForm
 from .models import User,UserProfile
 from restaurant.forms import RestaurantForm
 from django.contrib.auth.decorators import login_required
-from  .utils import detectUser, send_verification_email,send_password_reset_eamil
+from  .utils import detectUser, send_email
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 
@@ -28,7 +28,10 @@ def registerUser(request):
             user = User.objects.create_user(first_name=first_name,last_name=last_name,username=username,email=email,password=password,phone_number=phone_number)
             user.role = User.CUSTOMER
             user.save()
-            send_verification_email(request,user)
+            
+            email_subject = "Please active your account"
+            email_template = "accounts/emails/account_verification.html"
+            send_email(request,user,email_subject,email_template)
             messages.success(request,'Your account has been registered successfully')
             return redirect('home')
         else:
@@ -67,7 +70,9 @@ def registerRestaurant(request):
             restaurant.save()
             
             
-            send_verification_email(request,user)
+            email_subject = "Please active your account"
+            email_template = "accounts/emails/account_verification.html"
+            send_email(request,user,email_subject,email_template)
             messages.success(request,'Your account has been registered successfully')
             return redirect('home')
         else:
@@ -140,7 +145,9 @@ def forgot_password(request):
         if User.objects.get(email=email).exists():
             user = User.objects.get(email__exact=email)
             
-            send_password_reset_eamil(request,user)
+            email_subject = "Reset Your Password"
+            email_template = "accounts/emails/reset_password_email.html"
+            send_email(request,user,email_subject,email_template)
             messages.success(request,'Password Reset Link Has been sent to your email address')
             return redirect('login')
         else:

@@ -1,0 +1,14 @@
+
+
+{% autoescape off %}
+
+Hi {{user.first_name}},
+
+{% if is_approved %}
+    Congratulations! Your Restaurant has been approved by admin
+    {% else %}
+    Sorry! We couldn't approve your restaurant
+{% endif %}
+    
+    
+{% endautoescape %}
