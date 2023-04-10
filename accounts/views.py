@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from  .utils import detectUser, send_email
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
+from restaurant.models import Restaurant
 
 # Create your views here.
 
@@ -136,7 +137,11 @@ def customerDashboard(request):
 
 @login_required(login_url='login')  
 def restaurantDashboard(request):
-    return render(request,'accounts/restaurant_dashboard.html')
+    restaurant = Restaurant.objects.get(user=request.user)
+    context ={
+        'restaurant':restaurant,
+    }
+    return render(request,'accounts/restaurant_dashboard.html',context)
 
 
 def forgot_password(request):

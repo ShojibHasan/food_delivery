@@ -29,7 +29,7 @@ class Restaurant(models.Model):
                 send_notification(email_subject,email_template,context)
                 ...
             else:
-                email_subject = "We are sorry! You are not eligible now. "
+                email_subject = "We are sorry! You are not eligible now."
                 email_template = "accounts/emails/admin_approve.html"
                 context={
                     'user': self.user,
